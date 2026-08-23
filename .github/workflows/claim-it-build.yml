@@ -1,0 +1,45 @@
+name: Build Claim It APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "ClaimIt_v1.0_source.zip"
+      - ".github/workflows/claim-it-build.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.11.1"
+
+      - name: Unpack Claim It source
+        run: |
+          rm -rf build-src
+          mkdir build-src
+          unzip -q ClaimIt_v1.0_source.zip -d build-src
+          test -f build-src/ClaimIt/settings.gradle.kts
+
+      - name: Build debug APK
+        working-directory: build-src/ClaimIt
+        run: gradle --no-daemon assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Claim-It-debug-apk
+          path: build-src/ClaimIt/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          
