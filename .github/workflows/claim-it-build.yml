@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - "ClaimIt_v1.0.2_source.zip"
+      - "ClaimIt_v2.2_claim_it_branded_source.zip"
       - ".github/workflows/claim-it-build.yml"
 
 jobs:
@@ -29,7 +29,7 @@ jobs:
         run: |
           rm -rf build-src
           mkdir build-src
-          unzip -q ClaimIt_v1.0.2_source.zip -d build-src
+          unzip -q ClaimIt_v2.2_claim_it_branded_source.zip -d build-src
           test -f build-src/ClaimIt/settings.gradle.kts
 
       - name: Build debug APK
