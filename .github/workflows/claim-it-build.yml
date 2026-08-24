@@ -10,6 +10,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -26,20 +27,63 @@ jobs:
           gradle-version: "8.11.1"
 
       - name: Unpack Claim It source
+        shell: bash
         run: |
+          set -e
+
           rm -rf build-src
-          mkdir build-src
-          unzip -q ClaimIt_v2.2_claim_it_branded_source.zip -d build-src
-          test -f build-src/ClaimIt_v2.2_claim_it_branded/settings.gradle.kts
+          mkdir -p build-src
+
+          unzip -q "ClaimIt_v2.2_claim_it_branded_source.zip" -d build-src
+
+          PROJECT_DIR="$(find build-src -mindepth 1 -maxdepth 1 -type d | head -n 1)"
+
+          if [ -z "$PROJECT_DIR" ]; then
+            echo "ERROR: Could not find Claim It project directory."
+            exit 1
+          fi
+
+          if [ ! -f "$PROJECT_DIR/settings.gradle.kts" ]; then
+            echo "ERROR: settings.gradle.kts not found."
+            echo "Found project directory: $PROJECT_DIR"
+            exit 1
+          fi
+
+          echo "Claim It project found at: $PROJECT_DIR"
+          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
 
       - name: Build debug APK
-        working-directory: build-src/ClaimIt_v2.2_claim_it_branded
-        run: gradle --no-daemon assembleDebug
+        shell: bash
+        run: |
+          set -e
+
+          cd "$PROJECT_DIR"
+
+          echo "Building Claim It from:"
+          pwd
+
+          gradle --no-daemon --stacktrace assembleDebug
+
+      - name: Find APK
+        shell: bash
+        run: |
+          set -e
+
+          APK_PATH="$(find "$PROJECT_DIR/app/build/outputs/apk" -type f -name "*.apk" | head -n 1)"
+
+          if [ -z "$APK_PATH" ]; then
+            echo "ERROR: No APK was produced."
+            exit 1
+          fi
+
+          echo "APK found:"
+          echo "$APK_PATH"
+
+          echo "APK_PATH=$APK_PATH" >> "$GITHUB_ENV"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Claim-It-debug-apk
-          path: build-src/ClaimIt_v2.2_claim_it_branded/app/build/outputs/apk/debug/*.apk
+          path: ${{ env.APK_PATH }}
           if-no-files-found: error
-          
