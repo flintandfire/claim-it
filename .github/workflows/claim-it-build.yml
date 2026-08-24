@@ -30,16 +30,16 @@ jobs:
           rm -rf build-src
           mkdir build-src
           unzip -q ClaimIt_v2.2_claim_it_branded_source.zip -d build-src
-          test -f build-src/ClaimIt/settings.gradle.kts
+          test -f build-src/ClaimIt_v2.2_claim_it_branded/settings.gradle.kts
 
       - name: Build debug APK
-        working-directory: build-src/ClaimIt
+        working-directory: build-src/ClaimIt_v2.2_claim_it_branded
         run: gradle --no-daemon assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Claim-It-debug-apk
-          path: build-src/ClaimIt/app/build/outputs/apk/debug/*.apk
+          path: build-src/ClaimIt_v2.2_claim_it_branded/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           
